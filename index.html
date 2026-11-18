@@ -17,15 +17,16 @@
       </div>
       <div class="header-actions">
         <button type="button" id="theme-toggle" class="btn btn-outline">Tema</button>
-        <label for="import-file" class="btn btn-outline" style="cursor: pointer;">Importar</label>
+        <label for="import-file" class="btn btn-outline" style="cursor: pointer;">Arquivo</label>
         <input type="file" id="import-file" accept=".json" hidden>
+        <button type="button" id="btn-open-paste-modal" class="btn btn-outline">Colar JSON</button>
       </div>
     </header>
 
     <main>
       <div id="empty-state" class="empty-state glass-panel">
         <p>Nenhum sobrevivente registrado.</p>
-        <span>Clique no botão <strong>+</strong> para criar uma ficha ou importe um arquivo JSON.</span>
+        <span>Clique no botão <strong>+</strong> para criar uma ficha ou importe um arquivo/código JSON.</span>
       </div>
 
       <div id="character-grid" class="character-grid">
@@ -38,7 +39,7 @@
 
   <!-- ================= TELA DO PERSONAGEM ATIVO ================= -->
   <div id="sheet-view" class="container hidden">
-    <!-- Cabeçalho Otimizado em Linha Única no Mobile -->
+    <!-- Cabeçalho em linha única no Mobile -->
     <header class="sheet-header glass-panel">
       <button type="button" id="btn-back" class="btn btn-outline">Voltar</button>
       <div class="sheet-header-actions">
@@ -47,7 +48,7 @@
       </div>
     </header>
 
-    <!-- Cabeçalho do Sobrevivente Centralizado no Mobile -->
+    <!-- Cabeçalho do Sobrevivente -->
     <section class="char-banner glass-panel">
       <div class="avatar-container">
         <img id="sheet-avatar" src="" alt="Foto" class="char-avatar">
@@ -89,15 +90,11 @@
       
       <!-- Recursos Vitais -->
       <h3 class="section-title">Recursos Vitais</h3>
-      <div class="vitals-grid" id="vitals-container">
-        <!-- PVs, PSs, PEs, PFs gerados via JS -->
-      </div>
+      <div class="vitals-grid" id="vitals-container"></div>
 
-      <!-- Atributos (Com alteração temporária) -->
+      <!-- Atributos -->
       <h3 class="section-title">Atributos <small style="font-size:0.75rem; color:var(--text-muted);">(Clique para alterar temp.)</small></h3>
-      <div class="attributes-grid" id="attributes-container">
-        <!-- FOR, AGI, etc. gerados via JS -->
-      </div>
+      <div class="attributes-grid" id="attributes-container"></div>
 
       <!-- Integridade & Nutrientes -->
       <div class="two-col-grid">
@@ -183,7 +180,7 @@
         </div>
       </div>
 
-      <!-- Condições & Notas (Com clique para leitura ampliada) -->
+      <!-- Condições & Notas -->
       <div class="two-col-grid">
         <div class="glass-panel card">
           <h3 class="section-title">Condições <small style="font-size:0.7rem; color:var(--text-muted);">(Toque p/ ampliar)</small></h3>
@@ -282,6 +279,24 @@
     </div>
   </div>
 
+  <!-- ================= MODAL DE IMPORTAR JSON POR TEXTO ================= -->
+  <div id="paste-json-modal" class="modal hidden">
+    <div class="modal-content glass-modal reader-modal-content">
+      <div class="modal-header">
+        <h2>Importar Código JSON</h2>
+        <button type="button" id="btn-close-paste-modal" class="btn-icon">X</button>
+      </div>
+      <div class="reader-body">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Cole o código JSON bruto do sobrevivente abaixo:</p>
+        <textarea id="paste-json-textarea" rows="10" placeholder="Cole o JSON aqui..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn-cancel-paste" class="btn btn-outline">Cancelar</button>
+        <button type="button" id="btn-confirm-paste" class="btn btn-primary">Importar Sobrevivente</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL DE VISUALIZAÇÃO DE AÇÃO ================= -->
   <div id="action-detail-modal" class="modal hidden">
     <div class="modal-content glass-modal">
@@ -299,7 +314,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL DE LEITURA AMPLIADA (TEXTOS GRANDES) ================= -->
+  <!-- ================= MODAL DE LEITURA AMPLIADA ================= -->
   <div id="reader-modal" class="modal hidden">
     <div class="modal-content glass-modal reader-modal-content">
       <div class="modal-header">
@@ -418,7 +433,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL DE AJUSTE NUMÉRICO (VIDA / NUTRIENTES) ================= -->
+  <!-- ================= MODAL DE AJUSTE NUMÉRICO ================= -->
   <div id="adjust-modal" class="modal hidden">
     <div class="modal-content modal-sm glass-modal">
       <div class="modal-header">

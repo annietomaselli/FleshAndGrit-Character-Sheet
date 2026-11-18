@@ -36,6 +36,7 @@ const adjustModal = document.getElementById('adjust-modal');
 const attrModal = document.getElementById('attr-modal');
 const readerModal = document.getElementById('reader-modal');
 const actionDetailModal = document.getElementById('action-detail-modal');
+const pasteJsonModal = document.getElementById('paste-json-modal');
 
 // ================= NORMALIZAÇÃO DE DADOS =================
 function normalizeCharacter(c) {
@@ -131,6 +132,51 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
 function saveToStorage() {
   localStorage.setItem('flesh_and_grit_chars', JSON.stringify(characters));
 }
+
+// ================= IMPORTAR JSON POR TEXTO (COLA) =================
+const btnOpenPasteModal = document.getElementById('btn-open-paste-modal');
+const btnClosePasteModal = document.getElementById('btn-close-paste-modal');
+const btnCancelPaste = document.getElementById('btn-cancel-paste');
+const btnConfirmPaste = document.getElementById('btn-confirm-paste');
+const pasteJsonTextarea = document.getElementById('paste-json-textarea');
+
+btnOpenPasteModal.addEventListener('click', () => {
+  pasteJsonTextarea.value = '';
+  pasteJsonModal.classList.remove('hidden');
+  pasteJsonTextarea.focus();
+});
+
+function closePasteModal() {
+  pasteJsonModal.classList.add('hidden');
+  pasteJsonTextarea.value = '';
+}
+
+btnClosePasteModal.addEventListener('click', closePasteModal);
+btnCancelPaste.addEventListener('click', closePasteModal);
+
+btnConfirmPaste.addEventListener('click', () => {
+  const rawText = pasteJsonTextarea.value.trim();
+  if (!rawText) {
+    alert('Por favor, cole o código JSON na caixa de texto.');
+    return;
+  }
+
+  try {
+    const imported = JSON.parse(rawText);
+    if (!imported.name || !imported.attributes) {
+      alert('O JSON informado não é uma ficha válida para Flesh & Grit.');
+      return;
+    }
+    imported.id = Date.now().toString();
+    characters.push(normalizeCharacter(imported));
+    saveToStorage();
+    renderCharacterList();
+    closePasteModal();
+    alert(`Sobrevivente "${imported.name}" importado com sucesso.`);
+  } catch (err) {
+    alert('Erro ao interpretar o JSON. Verifique se o formato do texto está correto.');
+  }
+});
 
 // ================= VISUALIZAÇÃO EXPANDIDA DE AÇÃO =================
 function openActionDetailModal(act) {
@@ -835,7 +881,6 @@ function renderActions() {
       ${act.desc ? `<p class="action-desc-preview">${act.desc}</p>` : ''}
     `;
 
-    // Abre o modal de visualização ampliada ao clicar no card (exceto nos botões Editar/Apagar)
     card.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
       openActionDetailModal(act);
