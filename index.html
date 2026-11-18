@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flesh & Grit | Ficha de Sobrevivente</title>
+  <title>Flesh & Grit | Fichas de Sobrevivente</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-theme="dark">
@@ -29,9 +29,7 @@
         <span>Clique no botão <strong>+</strong> para criar uma ficha ou importe um arquivo/código JSON.</span>
       </div>
 
-      <div id="character-grid" class="character-grid">
-        <!-- Cards gerados via JS -->
-      </div>
+      <div id="character-grid" class="character-grid"></div>
     </main>
 
     <button type="button" id="btn-new-char" class="fab" title="Novo Sobrevivente">+</button>
@@ -39,7 +37,6 @@
 
   <!-- ================= TELA DO PERSONAGEM ATIVO ================= -->
   <div id="sheet-view" class="container hidden">
-    <!-- Cabeçalho em linha única no Mobile -->
     <header class="sheet-header glass-panel">
       <button type="button" id="btn-back" class="btn btn-outline">Voltar</button>
       <div class="sheet-header-actions">
@@ -48,14 +45,13 @@
       </div>
     </header>
 
-    <!-- Cabeçalho do Sobrevivente -->
     <section class="char-banner glass-panel">
       <div class="avatar-container">
         <img id="sheet-avatar" src="" alt="Foto" class="char-avatar">
       </div>
       <div class="char-meta">
         <h2 id="sheet-name" class="char-title">Nome do Sobrevivente</h2>
-        <p id="sheet-specialty" class="char-sub">Área de Conhecimento • Especialidade</p>
+        <p id="sheet-specialty" class="char-sub">Áreas de Conhecimento • Especialidades</p>
         <div class="badges-row">
           <span class="badge">Deslocamento: <strong id="sheet-desl">0</strong>m</span>
           <div class="badge badge-interactive">
@@ -74,29 +70,23 @@
       </div>
     </section>
 
-    <!-- Aviso de Sobrepeso -->
     <div id="overweight-alert" class="alert-danger hidden">
       <strong>SOBREPESO:</strong> Carga atual (<span id="alert-cur-weight">0</span>) excede a Carga Máxima (<span id="alert-max-weight">0</span>).
     </div>
 
-    <!-- Navegação por Abas -->
     <nav class="tabs glass-panel">
       <button type="button" class="tab-btn active" data-tab="tab-main">Status, Perícias &amp; Ações</button>
       <button type="button" class="tab-btn" data-tab="tab-inventory">Inventário &amp; Equipamento</button>
     </nav>
 
-    <!-- ================= ABA 1: TELA PRINCIPAL ================= -->
+    <!-- ABA 1 -->
     <div id="tab-main" class="tab-content active">
-      
-      <!-- Recursos Vitais -->
       <h3 class="section-title">Recursos Vitais</h3>
       <div class="vitals-grid" id="vitals-container"></div>
 
-      <!-- Atributos -->
       <h3 class="section-title">Atributos <small style="font-size:0.75rem; color:var(--text-muted);">(Clique para alterar temp.)</small></h3>
       <div class="attributes-grid" id="attributes-container"></div>
 
-      <!-- Integridade & Nutrientes -->
       <div class="two-col-grid">
         <div class="glass-panel card">
           <h3 class="section-title">Integridade Corporal</h3>
@@ -109,7 +99,6 @@
         </div>
       </div>
 
-      <!-- Ações do Personagem -->
       <div class="glass-panel card">
         <div class="card-header-flex">
           <h3 class="section-title" style="margin:0;">Ações <small style="font-size:0.7rem; color:var(--text-muted);">(Toque p/ expandir)</small></h3>
@@ -141,7 +130,6 @@
         <div id="actions-list" class="actions-list"></div>
       </div>
 
-      <!-- Perícias -->
       <div class="glass-panel card">
         <div class="card-header-flex">
           <h3 class="section-title" style="margin:0;">Perícias</h3>
@@ -180,7 +168,6 @@
         </div>
       </div>
 
-      <!-- Condições & Notas -->
       <div class="two-col-grid">
         <div class="glass-panel card">
           <h3 class="section-title">Condições <small style="font-size:0.7rem; color:var(--text-muted);">(Toque p/ ampliar)</small></h3>
@@ -193,10 +180,8 @@
       </div>
     </div>
 
-    <!-- ================= ABA 2: INVENTÁRIO ================= -->
+    <!-- ABA 2 -->
     <div id="tab-inventory" class="tab-content hidden">
-      
-      <!-- Barra de Carga -->
       <div class="glass-panel card weight-card">
         <div class="weight-header">
           <div>
@@ -212,7 +197,6 @@
         </div>
       </div>
 
-      <!-- Equipamento no Corpo -->
       <div class="glass-panel card">
         <h3 class="section-title">Equipado no Corpo</h3>
         <div class="equip-grid">
@@ -245,7 +229,6 @@
         </div>
       </div>
 
-      <!-- Criação / Edição de Item -->
       <div class="glass-panel card">
         <h3 class="section-title" id="item-form-title">Adicionar Item ao Inventário</h3>
         <form id="add-item-form" class="item-form">
@@ -279,7 +262,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL DE IMPORTAR JSON POR TEXTO ================= -->
+  <!-- MODAL DE IMPORTAR JSON -->
   <div id="paste-json-modal" class="modal hidden">
     <div class="modal-content glass-modal reader-modal-content">
       <div class="modal-header">
@@ -297,7 +280,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL DE VISUALIZAÇÃO DE AÇÃO ================= -->
+  <!-- MODAL DETALHE DE AÇÃO -->
   <div id="action-detail-modal" class="modal hidden">
     <div class="modal-content glass-modal">
       <div class="modal-header">
@@ -314,7 +297,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL DE LEITURA AMPLIADA ================= -->
+  <!-- MODAL LEITURA AMPLIADA -->
   <div id="reader-modal" class="modal hidden">
     <div class="modal-content glass-modal reader-modal-content">
       <div class="modal-header">
@@ -330,7 +313,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL DE ALTERAÇÃO TEMPORÁRIA DE ATRIBUTO ================= -->
+  <!-- MODAL ALTERAÇÃO TEMPORÁRIA ATRIBUTO -->
   <div id="attr-modal" class="modal hidden">
     <div class="modal-content modal-sm glass-modal">
       <div class="modal-header">
@@ -354,86 +337,113 @@
     </div>
   </div>
 
-  <!-- ================= MODAL DE CRIAÇÃO / EDIÇÃO DE FICHA ================= -->
+  <!-- ================= MODAL DE CRIAÇÃO / EDIÇÃO EM ETAPAS ================= -->
   <div id="char-modal" class="modal hidden">
-    <div class="modal-content glass-modal">
+    <div class="modal-content glass-modal wizard-modal">
       <div class="modal-header">
         <h2 id="modal-title">Novo Sobrevivente</h2>
         <button type="button" id="btn-close-modal" class="btn-icon">X</button>
       </div>
+
+      <!-- Barra de Progresso das Etapas -->
+      <div class="wizard-steps-indicator">
+        <div class="wizard-step-dot active" data-step-indicator="1">1. Informações Básicas</div>
+        <div class="wizard-step-dot" data-step-indicator="2">2. Atributos &amp; Recursos</div>
+      </div>
+
       <form id="char-form" class="modal-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nome do Sobrevivente *</label>
-            <input type="text" id="inp-name" required>
+        
+        <!-- ETAPA 1 -->
+        <div class="wizard-step-pane" data-step-pane="1">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nome do Sobrevivente *</label>
+              <input type="text" id="inp-name" required>
+            </div>
+            <div class="form-group">
+              <label>Foto do Personagem</label>
+              <input type="file" id="inp-photo" accept="image/*">
+            </div>
           </div>
-          <div class="form-group">
-            <label>Foto do Personagem</label>
-            <input type="file" id="inp-photo" accept="image/*">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cor da Borda da Foto</label>
+              <input type="color" id="inp-border-color" value="#c03e3e" class="color-picker">
+            </div>
+            <div class="form-group">
+              <label>Peso Corporal (kg) — Carga Máx.</label>
+              <input type="number" id="inp-bodyweight" value="70" step="0.5" required>
+            </div>
+          </div>
+
+          <!-- Áreas de Conhecimento Dinâmicas -->
+          <div class="form-group" style="margin-top: 0.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+              <label style="margin:0;">Áreas de Conhecimento</label>
+              <button type="button" id="btn-add-area" class="btn btn-sm btn-outline">+ Adicionar Área</button>
+            </div>
+            <div id="areas-container" class="dynamic-inputs-list"></div>
+          </div>
+
+          <!-- Especialidades Dinâmicas -->
+          <div class="form-group" style="margin-top: 0.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+              <label style="margin:0;">Especialidades</label>
+              <button type="button" id="btn-add-specialty" class="btn btn-sm btn-outline">+ Adicionar Especialidade</button>
+            </div>
+            <div id="specialties-container" class="dynamic-inputs-list"></div>
+          </div>
+
+          <div class="modal-footer" style="margin-top: 1.5rem;">
+            <button type="button" id="btn-cancel-modal" class="btn btn-outline">Cancelar</button>
+            <button type="button" id="btn-wizard-next" class="btn btn-primary">Avançar &rarr;</button>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Cor da Borda da Foto</label>
-            <input type="color" id="inp-border-color" value="#c03e3e" class="color-picker">
+        <!-- ETAPA 2 -->
+        <div class="wizard-step-pane hidden" data-step-pane="2">
+          <h4 class="modal-sub">Atributos</h4>
+          <div class="attr-inputs-grid">
+            <div><label>FOR</label><input type="number" id="inp-for" value="1"></div>
+            <div><label>AGI</label><input type="number" id="inp-agi" value="1"></div>
+            <div><label>TEN</label><input type="number" id="inp-ten" value="1"></div>
+            <div><label>SEN</label><input type="number" id="inp-sen" value="1"></div>
+            <div><label>INT</label><input type="number" id="inp-int" value="1"></div>
+            <div><label>EMO</label><input type="number" id="inp-emo" value="1"></div>
+            <div><label>MEN</label><input type="number" id="inp-men" value="1"></div>
           </div>
-          <div class="form-group">
-            <label>Peso Corporal (kg) — Carga Máx.</label>
-            <input type="number" id="inp-bodyweight" value="70" step="0.5" required>
+
+          <h4 class="modal-sub" style="margin-top: 0.75rem;">Recursos Máximos &amp; Status</h4>
+          <div class="attr-inputs-grid">
+            <div><label>PVs Máx</label><input type="number" id="inp-pvs" value="10"></div>
+            <div><label>PSs Máx</label><input type="number" id="inp-pss" value="10"></div>
+            <div><label>PEs Máx</label><input type="number" id="inp-pes" value="10"></div>
+            <div><label>PFs Máx</label><input type="number" id="inp-pfs" value="10"></div>
+            <div><label>Desl (m)</label><input type="number" id="inp-desl" value="6"></div>
+            <div><label>Sorte</label><input type="number" id="inp-sorte" value="1"></div>
+            <div><label>Clamor</label><input type="number" id="inp-clamor" value="0"></div>
+          </div>
+
+          <h4 class="modal-sub" style="margin-top: 0.75rem;">Nutrientes Máximos</h4>
+          <div class="attr-inputs-grid">
+            <div><label>Proteínas Máx</label><input type="number" id="inp-nut-prot" value="10"></div>
+            <div><label>Gorduras Máx</label><input type="number" id="inp-nut-gord" value="10"></div>
+            <div><label>Carboidratos Máx</label><input type="number" id="inp-nut-carb" value="10"></div>
+            <div><label>Hidratação Máx</label><input type="number" id="inp-nut-hidr" value="10"></div>
+          </div>
+
+          <div class="modal-footer" style="margin-top: 1.5rem; display:flex; justify-content:space-between;">
+            <button type="button" id="btn-wizard-prev" class="btn btn-outline">&larr; Voltar</button>
+            <button type="submit" class="btn btn-primary">Salvar Sobrevivente</button>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Área de Conhecimento</label>
-            <input type="text" id="inp-area" placeholder="Ex: Medicina, Engenharia...">
-          </div>
-          <div class="form-group">
-            <label>Especialidade</label>
-            <input type="text" id="inp-specialty" placeholder="Ex: Cirurgião">
-          </div>
-        </div>
-
-        <h4 class="modal-sub">Atributos</h4>
-        <div class="attr-inputs-grid">
-          <div><label>FOR</label><input type="number" id="inp-for" value="1"></div>
-          <div><label>AGI</label><input type="number" id="inp-agi" value="1"></div>
-          <div><label>TEN</label><input type="number" id="inp-ten" value="1"></div>
-          <div><label>SEN</label><input type="number" id="inp-sen" value="1"></div>
-          <div><label>INT</label><input type="number" id="inp-int" value="1"></div>
-          <div><label>EMO</label><input type="number" id="inp-emo" value="1"></div>
-          <div><label>MEN</label><input type="number" id="inp-men" value="1"></div>
-        </div>
-
-        <h4 class="modal-sub">Recursos Máximos &amp; Status</h4>
-        <div class="attr-inputs-grid">
-          <div><label>PVs Máx</label><input type="number" id="inp-pvs" value="10"></div>
-          <div><label>PSs Máx</label><input type="number" id="inp-pss" value="10"></div>
-          <div><label>PEs Máx</label><input type="number" id="inp-pes" value="10"></div>
-          <div><label>PFs Máx</label><input type="number" id="inp-pfs" value="10"></div>
-          <div><label>Desl (m)</label><input type="number" id="inp-desl" value="6"></div>
-          <div><label>Sorte</label><input type="number" id="inp-sorte" value="1"></div>
-          <div><label>Clamor</label><input type="number" id="inp-clamor" value="0"></div>
-        </div>
-
-        <h4 class="modal-sub">Nutrientes Máximos</h4>
-        <div class="attr-inputs-grid">
-          <div><label>Proteínas Máx</label><input type="number" id="inp-nut-prot" value="10"></div>
-          <div><label>Gorduras Máx</label><input type="number" id="inp-nut-gord" value="10"></div>
-          <div><label>Carboidratos Máx</label><input type="number" id="inp-nut-carb" value="10"></div>
-          <div><label>Hidratação Máx</label><input type="number" id="inp-nut-hidr" value="10"></div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" id="btn-cancel-modal" class="btn btn-outline">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar Sobrevivente</button>
-        </div>
       </form>
     </div>
   </div>
 
-  <!-- ================= MODAL DE AJUSTE NUMÉRICO ================= -->
+  <!-- MODAL AJUSTE NUMÉRICO -->
   <div id="adjust-modal" class="modal hidden">
     <div class="modal-content modal-sm glass-modal">
       <div class="modal-header">

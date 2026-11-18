@@ -1,9 +1,8 @@
-// Estado da Aplicação
 let characters = JSON.parse(localStorage.getItem('flesh_and_grit_chars')) || [];
 let activeCharId = null;
 let editingCharId = null;
+let currentWizardStep = 1;
 
-// Modais
 let adjustTarget = { category: null, key: null, mode: null };
 let activeAttrKey = null;
 let activeReaderElement = null;
@@ -44,27 +43,48 @@ function normalizeCharacter(c) {
   c.name = c.name || 'Sobrevivente';
   c.photo = c.photo || DEFAULT_AVATAR;
   c.borderColor = c.borderColor || '#c03e3e';
-  c.area = c.area || '';
-  c.specialty = c.specialty || '';
+  
+  if (Array.isArray(c.areas)) {
+    c.areas = c.areas.filter(Boolean);
+  } else {
+    c.areas = c.area ? [c.area] : [];
+  }
+
+  if (Array.isArray(c.specialties)) {
+    c.specialties = c.specialties.filter(Boolean);
+  } else {
+    c.specialties = c.specialty ? [c.specialty] : [];
+  }
+
   c.desl = Number(c.desl) || 0;
   c.sorte = Number(c.sorte) || 0;
   c.clamor = Number(c.clamor) || 0;
   c.bodyWeight = Number(c.bodyWeight) || 70;
 
   c.attributes = {
-    FOR: 1, AGI: 1, TEN: 1, SEN: 1, INT: 1, EMO: 1, MEN: 1,
-    ...(c.attributes || {})
+    FOR: Number(c.attributes?.FOR ?? 1),
+    AGI: Number(c.attributes?.AGI ?? 1),
+    TEN: Number(c.attributes?.TEN ?? 1),
+    SEN: Number(c.attributes?.SEN ?? 1),
+    INT: Number(c.attributes?.INT ?? 1),
+    EMO: Number(c.attributes?.EMO ?? 1),
+    MEN: Number(c.attributes?.MEN ?? 1)
   };
 
   if (!c.tempAttributes || typeof c.tempAttributes !== 'object') {
     c.tempAttributes = {};
   }
 
+  const normVital = (vObj) => ({
+    cur: Number(vObj?.cur ?? 10),
+    max: Number(vObj?.max ?? 10)
+  });
+
   c.vitals = {
-    pvs: { cur: 10, max: 10, ...(c.vitals?.pvs || {}) },
-    pss: { cur: 10, max: 10, ...(c.vitals?.pss || {}) },
-    pes: { cur: 10, max: 10, ...(c.vitals?.pes || {}) },
-    pfs: { cur: 10, max: 10, ...(c.vitals?.pfs || {}) }
+    pvs: normVital(c.vitals?.pvs),
+    pss: normVital(c.vitals?.pss),
+    pes: normVital(c.vitals?.pes),
+    pfs: normVital(c.vitals?.pfs)
   };
 
   if (!c.integrity || typeof c.integrity !== 'object') {
@@ -83,12 +103,11 @@ function normalizeCharacter(c) {
     }
   });
 
-  const defaultNut = { cur: 10, max: 10 };
   c.nutrients = {
-    'Proteínas': { ...defaultNut, ...(c.nutrients?.['Proteínas'] || {}) },
-    'Gorduras': { ...defaultNut, ...(c.nutrients?.['Gorduras'] || {}) },
-    'Carboidratos': { ...defaultNut, ...(c.nutrients?.['Carboidratos'] || {}) },
-    'Hidratação': { ...defaultNut, ...(c.nutrients?.['Hidratação'] || {}) }
+    'Proteínas': normVital(c.nutrients?.['Proteínas']),
+    'Gorduras': normVital(c.nutrients?.['Gorduras']),
+    'Carboidratos': normVital(c.nutrients?.['Carboidratos']),
+    'Hidratação': normVital(c.nutrients?.['Hidratação'])
   };
 
   if (!Array.isArray(c.actionsList)) c.actionsList = [];
@@ -133,7 +152,7 @@ function saveToStorage() {
   localStorage.setItem('flesh_and_grit_chars', JSON.stringify(characters));
 }
 
-// ================= IMPORTAR JSON POR TEXTO (COLA) =================
+// ================= IMPORTAR JSON POR TEXTO =================
 const btnOpenPasteModal = document.getElementById('btn-open-paste-modal');
 const btnClosePasteModal = document.getElementById('btn-close-paste-modal');
 const btnCancelPaste = document.getElementById('btn-cancel-paste');
@@ -160,7 +179,6 @@ btnConfirmPaste.addEventListener('click', () => {
     alert('Por favor, cole o código JSON na caixa de texto.');
     return;
   }
-
   try {
     const imported = JSON.parse(rawText);
     if (!imported.name || !imported.attributes) {
@@ -174,111 +192,11 @@ btnConfirmPaste.addEventListener('click', () => {
     closePasteModal();
     alert(`Sobrevivente "${imported.name}" importado com sucesso.`);
   } catch (err) {
-    alert('Erro ao interpretar o JSON. Verifique se o formato do texto está correto.');
+    alert('Erro ao interpretar o JSON.');
   }
 });
 
-// ================= VISUALIZAÇÃO EXPANDIDA DE AÇÃO =================
-function openActionDetailModal(act) {
-  document.getElementById('detail-act-title').textContent = act.name;
-  const tagsEl = document.getElementById('detail-act-tags');
-  tagsEl.innerHTML = `<span class="action-tag">Tipo: ${act.type || 'Ação'}</span>`;
-  if (act.cost) tagsEl.innerHTML += `<span class="action-tag">Custo: ${act.cost}</span>`;
-  if (act.dmg) tagsEl.innerHTML += `<span class="action-tag">Dano: ${act.dmg}</span>`;
-
-  const descEl = document.getElementById('detail-act-desc');
-  descEl.textContent = act.desc ? act.desc : 'Sem descrição adicional registrada para esta ação.';
-
-  actionDetailModal.classList.remove('hidden');
-}
-
-function closeActionDetailModal() {
-  actionDetailModal.classList.add('hidden');
-}
-
-document.getElementById('btn-close-action-detail').addEventListener('click', closeActionDetailModal);
-document.getElementById('btn-ok-action-detail').addEventListener('click', closeActionDetailModal);
-
-// ================= LEITURA AMPLIADA DE TEXTOS GRANDES =================
-function initExpandableTextareas() {
-  document.querySelectorAll('.expandable-textarea').forEach(textarea => {
-    if (textarea.dataset.bound === 'true') return;
-    textarea.dataset.bound = 'true';
-    textarea.addEventListener('click', () => {
-      openReaderModal(textarea);
-    });
-  });
-}
-
-function openReaderModal(textareaEl) {
-  activeReaderElement = textareaEl;
-  const cardTitle = textareaEl.closest('.card')?.querySelector('.section-title')?.textContent?.replace('(Toque p/ ampliar)', '').trim() || 'Visualizar Texto';
-  document.getElementById('reader-modal-title').textContent = cardTitle;
-  document.getElementById('reader-textarea').value = textareaEl.value;
-  readerModal.classList.remove('hidden');
-}
-
-document.getElementById('btn-close-reader').addEventListener('click', () => {
-  readerModal.classList.add('hidden');
-  activeReaderElement = null;
-});
-
-document.getElementById('btn-save-reader').addEventListener('click', () => {
-  if (activeReaderElement) {
-    activeReaderElement.value = document.getElementById('reader-textarea').value;
-    activeReaderElement.dispatchEvent(new Event('input'));
-  }
-  readerModal.classList.add('hidden');
-  activeReaderElement = null;
-});
-
-// ================= LISTA INICIAL =================
-function renderCharacterList() {
-  charGrid.innerHTML = '';
-  if (characters.length === 0) {
-    emptyState.classList.remove('hidden');
-    return;
-  }
-  emptyState.classList.add('hidden');
-
-  characters.forEach(rawChar => {
-    const char = normalizeCharacter(rawChar);
-    const card = document.createElement('div');
-    card.className = 'char-card';
-    card.innerHTML = `
-      <img src="${char.photo}" alt="${char.name}" style="border-color: ${char.borderColor}; box-shadow: 0 0 12px ${char.borderColor}66;">
-      <div class="char-card-info">
-        <h3>${char.name}</h3>
-        <p>${char.specialty || char.area || 'Sobrevivente'}</p>
-        <p style="margin-top:4px; font-size:0.78rem;">
-          PV: ${char.vitals.pvs.cur}/${char.vitals.pvs.max} | 
-          PS: ${char.vitals.pss.cur}/${char.vitals.pss.max}
-        </p>
-      </div>
-      <button type="button" class="delete-char-btn" title="Excluir">X</button>
-    `;
-
-    card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('delete-char-btn')) {
-        e.stopPropagation();
-        deleteCharacter(char.id);
-        return;
-      }
-      openCharacterSheet(char.id);
-    });
-
-    charGrid.appendChild(card);
-  });
-}
-
-function deleteCharacter(id) {
-  if (!confirm('Tem certeza que deseja apagar este sobrevivente permanentemente?')) return;
-  characters = characters.filter(c => c.id !== id);
-  saveToStorage();
-  renderCharacterList();
-}
-
-// ================= MODAL CRIAR / EDITAR FICHA =================
+// ================= MODAL DE CRIAÇÃO / EDIÇÃO EM ETAPAS (WIZARD) =================
 document.getElementById('btn-new-char').addEventListener('click', () => openModal(null));
 document.getElementById('btn-edit-char').addEventListener('click', () => {
   if (!activeCharId) return;
@@ -287,11 +205,58 @@ document.getElementById('btn-edit-char').addEventListener('click', () => {
 document.getElementById('btn-close-modal').addEventListener('click', closeModal);
 document.getElementById('btn-cancel-modal').addEventListener('click', closeModal);
 
+document.getElementById('btn-add-area').addEventListener('click', () => addDynamicInput('areas-container', 'Ex: Medicina'));
+document.getElementById('btn-add-specialty').addEventListener('click', () => addDynamicInput('specialties-container', 'Ex: Cirurgião'));
+
+function addDynamicInput(containerId, placeholder, value = '') {
+  const container = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'dynamic-input-row';
+  row.innerHTML = `
+    <input type="text" class="dynamic-val-input" placeholder="${placeholder}" value="${value}">
+    <button type="button" class="btn btn-sm btn-outline" style="color:var(--red-title); border-color:var(--red-title); padding:0.45rem 0.6rem;" title="Remover">X</button>
+  `;
+  row.querySelector('button').addEventListener('click', () => row.remove());
+  container.appendChild(row);
+}
+
+function getDynamicValues(containerId) {
+  const inputs = document.querySelectorAll(`#${containerId} .dynamic-val-input`);
+  return Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+}
+
+document.getElementById('btn-wizard-next').addEventListener('click', () => {
+  const nameInput = document.getElementById('inp-name');
+  if (!nameInput.value.trim()) {
+    alert('Preencha o nome do sobrevivente para continuar.');
+    nameInput.focus();
+    return;
+  }
+  setWizardStep(2);
+});
+
+document.getElementById('btn-wizard-prev').addEventListener('click', () => {
+  setWizardStep(1);
+});
+
+function setWizardStep(step) {
+  currentWizardStep = step;
+  document.querySelectorAll('.wizard-step-pane').forEach(p => p.classList.add('hidden'));
+  document.querySelector(`[data-step-pane="${step}"]`).classList.remove('hidden');
+
+  document.querySelectorAll('.wizard-step-dot').forEach(d => {
+    d.classList.toggle('active', Number(d.dataset.stepIndicator) === step);
+  });
+}
+
 function openModal(charId = null) {
   try {
     editingCharId = charId;
+    setWizardStep(1);
     const form = document.getElementById('char-form');
     form.reset();
+    document.getElementById('areas-container').innerHTML = '';
+    document.getElementById('specialties-container').innerHTML = '';
 
     if (charId) {
       const raw = characters.find(x => x.id === charId);
@@ -301,8 +266,19 @@ function openModal(charId = null) {
       document.getElementById('modal-title').textContent = 'Editar Sobrevivente';
       document.getElementById('inp-name').value = c.name;
       document.getElementById('inp-border-color').value = c.borderColor;
-      document.getElementById('inp-area').value = c.area;
-      document.getElementById('inp-specialty').value = c.specialty;
+      document.getElementById('inp-bodyweight').value = c.bodyWeight;
+
+      if (c.areas && c.areas.length > 0) {
+        c.areas.forEach(a => addDynamicInput('areas-container', 'Ex: Medicina', a));
+      } else {
+        addDynamicInput('areas-container', 'Ex: Medicina');
+      }
+
+      if (c.specialties && c.specialties.length > 0) {
+        c.specialties.forEach(s => addDynamicInput('specialties-container', 'Ex: Cirurgião', s));
+      } else {
+        addDynamicInput('specialties-container', 'Ex: Cirurgião');
+      }
 
       document.getElementById('inp-for').value = c.attributes.FOR;
       document.getElementById('inp-agi').value = c.attributes.AGI;
@@ -320,7 +296,6 @@ function openModal(charId = null) {
       document.getElementById('inp-desl').value = c.desl;
       document.getElementById('inp-sorte').value = c.sorte;
       document.getElementById('inp-clamor').value = c.clamor;
-      document.getElementById('inp-bodyweight').value = c.bodyWeight;
 
       document.getElementById('inp-nut-prot').value = c.nutrients['Proteínas'].max;
       document.getElementById('inp-nut-gord').value = c.nutrients['Gorduras'].max;
@@ -329,11 +304,13 @@ function openModal(charId = null) {
     } else {
       document.getElementById('modal-title').textContent = 'Novo Sobrevivente';
       document.getElementById('inp-border-color').value = '#c03e3e';
+      addDynamicInput('areas-container', 'Ex: Medicina');
+      addDynamicInput('specialties-container', 'Ex: Cirurgião');
     }
 
     charModal.classList.remove('hidden');
   } catch (err) {
-    console.error('Erro ao abrir modal de edição:', err);
+    console.error('Erro ao abrir modal:', err);
     closeModal();
   }
 }
@@ -374,6 +351,9 @@ document.getElementById('char-form').addEventListener('submit', async (e) => {
     const photoFile = document.getElementById('inp-photo').files[0];
     const photoBase64 = await processImageFile(photoFile);
 
+    const areasList = getDynamicValues('areas-container');
+    const specialtiesList = getDynamicValues('specialties-container');
+
     const pvsMax = Number(document.getElementById('inp-pvs').value) || 0;
     const pssMax = Number(document.getElementById('inp-pss').value) || 0;
     const pesMax = Number(document.getElementById('inp-pes').value) || 0;
@@ -405,8 +385,8 @@ document.getElementById('char-form').addEventListener('submit', async (e) => {
           name: document.getElementById('inp-name').value.trim(),
           photo: photoBase64 || old.photo,
           borderColor: document.getElementById('inp-border-color').value,
-          area: document.getElementById('inp-area').value.trim(),
-          specialty: document.getElementById('inp-specialty').value.trim(),
+          areas: areasList,
+          specialties: specialtiesList,
           attributes: attrs,
           vitals: {
             pvs: { cur: Math.min(old.vitals.pvs.cur, pvsMax), max: pvsMax },
@@ -437,8 +417,8 @@ document.getElementById('char-form').addEventListener('submit', async (e) => {
         name: document.getElementById('inp-name').value.trim(),
         photo: photoBase64 || DEFAULT_AVATAR,
         borderColor: document.getElementById('inp-border-color').value,
-        area: document.getElementById('inp-area').value.trim(),
-        specialty: document.getElementById('inp-specialty').value.trim(),
+        areas: areasList,
+        specialties: specialtiesList,
         attributes: attrs,
         vitals: {
           pvs: { cur: pvsMax, max: pvsMax },
@@ -468,7 +448,7 @@ document.getElementById('char-form').addEventListener('submit', async (e) => {
   }
 });
 
-// ================= TELA DA FICHA DO PERSONAGEM =================
+// ================= FICHA DO PERSONAGEM =================
 function getActiveChar() {
   const c = characters.find(x => x.id === activeCharId);
   return c ? normalizeCharacter(c) : null;
@@ -488,7 +468,6 @@ document.getElementById('btn-back').addEventListener('click', () => {
   renderCharacterList();
 });
 
-// Controle das Abas
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -498,37 +477,36 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// Botões Sorte e Clamor
 document.getElementById('btn-sorte-dec').addEventListener('click', () => {
   const c = getActiveChar();
   if (!c) return;
-  c.sorte = Math.max(0, c.sorte - 1);
+  c.sorte = Math.max(0, Number(c.sorte) - 1);
   saveToStorage();
   renderSheet();
 });
 document.getElementById('btn-sorte-inc').addEventListener('click', () => {
   const c = getActiveChar();
   if (!c) return;
-  c.sorte += 1;
+  c.sorte = Number(c.sorte) + 1;
   saveToStorage();
   renderSheet();
 });
 document.getElementById('btn-clamor-dec').addEventListener('click', () => {
   const c = getActiveChar();
   if (!c) return;
-  c.clamor = Math.max(0, c.clamor - 1);
+  c.clamor = Math.max(0, Number(c.clamor) - 1);
   saveToStorage();
   renderSheet();
 });
 document.getElementById('btn-clamor-inc').addEventListener('click', () => {
   const c = getActiveChar();
   if (!c) return;
-  c.clamor += 1;
+  c.clamor = Number(c.clamor) + 1;
   saveToStorage();
   renderSheet();
 });
 
-// ================= ALTERAÇÃO TEMPORÁRIA DE ATRIBUTOS =================
+// ================= ATRIBUTOS & MODAL AJUSTE =================
 function openAttrModal(attrKey) {
   const c = getActiveChar();
   if (!c) return;
@@ -581,14 +559,11 @@ document.getElementById('attr-form').addEventListener('submit', (e) => {
   renderSheet();
 });
 
-// ================= MODAL DE AJUSTE NUMÉRICO (VIDA & NUTRIENTES) =================
 function openAdjustModal(category, key, mode, label) {
   adjustTarget = { category, key, mode };
   const isSub = mode === 'sub';
   const title = isSub ? `Reduzir — ${label}` : `Aumentar — ${label}`;
-  const desc = isSub
-    ? 'O valor digitado será subtraído do valor atual.'
-    : 'O valor digitado será somado ao valor atual.';
+  const desc = isSub ? 'O valor digitado será subtraído do valor atual.' : 'O valor digitado será somado ao valor atual.';
 
   document.getElementById('adjust-modal-title').textContent = title;
   document.getElementById('adjust-modal-desc').textContent = desc;
@@ -616,15 +591,13 @@ document.getElementById('adjust-form').addEventListener('submit', (e) => {
   }
 
   const amount = Math.abs(Number(document.getElementById('adjust-amount').value)) || 0;
-  const targetObj = adjustTarget.category === 'vitals'
-    ? c.vitals[adjustTarget.key]
-    : c.nutrients[adjustTarget.key];
+  const targetObj = adjustTarget.category === 'vitals' ? c.vitals[adjustTarget.key] : c.nutrients[adjustTarget.key];
 
   if (targetObj) {
     if (adjustTarget.mode === 'sub') {
-      targetObj.cur = Math.max(0, targetObj.cur - amount);
+      targetObj.cur = Math.max(0, Number(targetObj.cur) - amount);
     } else {
-      targetObj.cur = Math.min(targetObj.max, targetObj.cur + amount);
+      targetObj.cur = Math.min(Number(targetObj.max), Number(targetObj.cur) + amount);
     }
   }
 
@@ -633,7 +606,7 @@ document.getElementById('adjust-form').addEventListener('submit', (e) => {
   renderSheet();
 });
 
-// ================= RENDERIZAÇÃO GERAL DA FICHA =================
+// ================= RENDERIZAR FICHA =================
 function renderSheet() {
   const c = getActiveChar();
   if (!c) return;
@@ -644,8 +617,12 @@ function renderSheet() {
   avatarEl.style.boxShadow = `0 0 18px ${c.borderColor}99, 0 0 36px ${c.borderColor}44`;
 
   document.getElementById('sheet-name').textContent = c.name;
-  const subText = [c.area, c.specialty].filter(Boolean).join(' • ') || 'Sobrevivente';
+  
+  const areasStr = c.areas && c.areas.length > 0 ? c.areas.join(', ') : '';
+  const specStr = c.specialties && c.specialties.length > 0 ? c.specialties.join(', ') : '';
+  const subText = [areasStr, specStr].filter(Boolean).join(' • ') || 'Sobrevivente';
   document.getElementById('sheet-specialty').textContent = subText;
+
   document.getElementById('sheet-desl').textContent = c.desl;
   document.getElementById('sheet-sorte').textContent = c.sorte;
   document.getElementById('sheet-clamor').textContent = c.clamor;
@@ -667,12 +644,41 @@ function renderSheet() {
     div.className = 'vital-box';
     div.innerHTML = `
       <label>${item.label}</label>
-      <span class="vital-value">${v.cur} / ${v.max}</span>
+      <div class="vital-header-row">
+        <button type="button" class="mini-btn vital-dec-unit" title="Diminuir 1">-</button>
+        <span class="vital-value">${v.cur} / ${v.max}</span>
+        <button type="button" class="mini-btn vital-inc-unit" title="Aumentar 1">+</button>
+      </div>
       <div class="vital-actions">
         <button type="button" class="btn-damage">${item.subText}</button>
         <button type="button" class="btn-heal">${item.addText}</button>
       </div>
     `;
+
+    // Botão de diminuir 1 unitário
+    div.querySelector('.vital-dec-unit').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const charNow = getActiveChar();
+      if (!charNow) return;
+      const vitalNow = charNow.vitals[item.key];
+      vitalNow.cur = Math.max(0, Number(vitalNow.cur) - 1);
+      saveToStorage();
+      renderSheet();
+    });
+
+    // Botão de aumentar 1 unitário
+    div.querySelector('.vital-inc-unit').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const charNow = getActiveChar();
+      if (!charNow) return;
+      const vitalNow = charNow.vitals[item.key];
+      vitalNow.cur = Math.min(Number(vitalNow.max), Number(vitalNow.cur) + 1);
+      saveToStorage();
+      renderSheet();
+    });
+
     div.querySelector('.btn-damage').addEventListener('click', () => {
       openAdjustModal('vitals', item.key, 'sub', item.label);
     });
@@ -725,7 +731,7 @@ function renderSheet() {
         </div>
         <div>
           <label>Descrição e Efeitos</label>
-          <textarea class="int-desc expandable-textarea" rows="2" placeholder="Descreva ferimentos, penalidades...">${partData.desc}</textarea>
+          <textarea class="int-desc expandable-textarea" rows="2" placeholder="Descreva ferimentos...">${partData.desc}</textarea>
         </div>
       </div>
     `;
@@ -780,7 +786,6 @@ function renderSheet() {
   renderActions();
   renderSkills();
 
-  // Condições & Notas
   const condEl = document.getElementById('sheet-conditions');
   const notesEl = document.getElementById('sheet-notes');
   condEl.value = c.conditions || '';
@@ -834,14 +839,7 @@ actionForm.addEventListener('submit', (e) => {
       c.actionsList[idx] = { ...c.actionsList[idx], name, type, cost, dmg, desc };
     }
   } else {
-    c.actionsList.push({
-      id: Date.now(),
-      name,
-      type,
-      cost,
-      dmg,
-      desc
-    });
+    c.actionsList.push({ id: Date.now(), name, type, cost, dmg, desc });
   }
 
   resetActionForm();
@@ -849,6 +847,20 @@ actionForm.addEventListener('submit', (e) => {
   saveToStorage();
   renderActions();
 });
+
+function openActionDetailModal(act) {
+  document.getElementById('detail-act-title').textContent = act.name;
+  const tagsEl = document.getElementById('detail-act-tags');
+  tagsEl.innerHTML = `<span class="action-tag">Tipo: ${act.type || 'Ação'}</span>`;
+  if (act.cost) tagsEl.innerHTML += `<span class="action-tag">Custo: ${act.cost}</span>`;
+  if (act.dmg) tagsEl.innerHTML += `<span class="action-tag">Dano: ${act.dmg}</span>`;
+
+  document.getElementById('detail-act-desc').textContent = act.desc ? act.desc : 'Sem descrição adicional registrada.';
+  actionDetailModal.classList.remove('hidden');
+}
+
+document.getElementById('btn-close-action-detail').addEventListener('click', () => actionDetailModal.classList.add('hidden'));
+document.getElementById('btn-ok-action-detail').addEventListener('click', () => actionDetailModal.classList.add('hidden'));
 
 function renderActions() {
   const c = getActiveChar();
@@ -1005,7 +1017,7 @@ function renderSkills() {
   });
 }
 
-// ================= INVENTÁRIO & CÁLCULO DE PESO =================
+// ================= INVENTÁRIO =================
 function renderEquipment() {
   const c = getActiveChar();
   const eq = c.equipment;
@@ -1142,7 +1154,39 @@ function renderInventory() {
   }
 }
 
-// ================= EXPORTAR E IMPORTAR JSON =================
+// ================= LEITURA AMPLIADA & EXPORTAR =================
+function initExpandableTextareas() {
+  document.querySelectorAll('.expandable-textarea').forEach(textarea => {
+    if (textarea.dataset.bound === 'true') return;
+    textarea.dataset.bound = 'true';
+    textarea.addEventListener('click', () => {
+      openReaderModal(textarea);
+    });
+  });
+}
+
+function openReaderModal(textareaEl) {
+  activeReaderElement = textareaEl;
+  const cardTitle = textareaEl.closest('.card')?.querySelector('.section-title')?.textContent?.replace('(Toque p/ ampliar)', '').trim() || 'Visualizar Texto';
+  document.getElementById('reader-modal-title').textContent = cardTitle;
+  document.getElementById('reader-textarea').value = textareaEl.value;
+  readerModal.classList.remove('hidden');
+}
+
+document.getElementById('btn-close-reader').addEventListener('click', () => {
+  readerModal.classList.add('hidden');
+  activeReaderElement = null;
+});
+
+document.getElementById('btn-save-reader').addEventListener('click', () => {
+  if (activeReaderElement) {
+    activeReaderElement.value = document.getElementById('reader-textarea').value;
+    activeReaderElement.dispatchEvent(new Event('input'));
+  }
+  readerModal.classList.add('hidden');
+  activeReaderElement = null;
+});
+
 document.getElementById('btn-export-char').addEventListener('click', () => {
   const c = getActiveChar();
   if (!c) return;
@@ -1180,3 +1224,49 @@ document.getElementById('import-file').addEventListener('change', (e) => {
   };
   reader.readAsText(file);
 });
+
+function renderCharacterList() {
+  charGrid.innerHTML = '';
+  if (characters.length === 0) {
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  emptyState.classList.add('hidden');
+
+  characters.forEach(rawChar => {
+    const char = normalizeCharacter(rawChar);
+    const card = document.createElement('div');
+    card.className = 'char-card';
+    const subDesc = (char.specialties && char.specialties[0]) || (char.areas && char.areas[0]) || 'Sobrevivente';
+    card.innerHTML = `
+      <img src="${char.photo}" alt="${char.name}" style="border-color: ${char.borderColor}; box-shadow: 0 0 12px ${char.borderColor}66;">
+      <div class="char-card-info">
+        <h3>${char.name}</h3>
+        <p>${subDesc}</p>
+        <p style="margin-top:4px; font-size:0.78rem;">
+          PV: ${char.vitals.pvs.cur}/${char.vitals.pvs.max} | 
+          PS: ${char.vitals.pss.cur}/${char.vitals.pss.max}
+        </p>
+      </div>
+      <button type="button" class="delete-char-btn" title="Excluir">X</button>
+    `;
+
+    card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete-char-btn')) {
+        e.stopPropagation();
+        deleteCharacter(char.id);
+        return;
+      }
+      openCharacterSheet(char.id);
+    });
+
+    charGrid.appendChild(card);
+  });
+}
+
+function deleteCharacter(id) {
+  if (!confirm('Tem certeza que deseja apagar este sobrevivente permanentemente?')) return;
+  characters = characters.filter(c => c.id !== id);
+  saveToStorage();
+  renderCharacterList();
+}

@@ -28,7 +28,7 @@
   --bg-radial: radial-gradient(circle at 15% 10%, rgba(103, 35, 35, 0.22), transparent 45%),
                radial-gradient(circle at 85% 85%, rgba(14, 28, 22, 0.65), transparent 50%);
   --glass-bg: rgba(14, 28, 22, 0.55);
-  --glass-modal-bg: rgba(10, 18, 15, 0.9);
+  --glass-modal-bg: rgba(10, 18, 15, 0.92);
   --glass-border: rgba(187, 204, 201, 0.16);
   --glass-highlight: rgba(187, 204, 201, 0.06);
   --bg-input: rgba(5, 10, 8, 0.72);
@@ -56,6 +56,15 @@
   margin: 0;
   padding: 0;
   font-family: '29LTMakina', '29LT Makina', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
 }
 
 body {
@@ -95,7 +104,6 @@ body {
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), inset 0 1px 0 var(--glass-highlight);
 }
 
-/* Cabeçalhos */
 .main-header {
   display: flex;
   justify-content: space-between;
@@ -172,7 +180,6 @@ body {
   }
 }
 
-/* Botões */
 .btn {
   padding: 0.55rem 1rem;
   border-radius: 8px;
@@ -237,7 +244,6 @@ body {
   text-decoration: underline;
 }
 
-/* FAB (+) */
 .fab {
   position: fixed;
   bottom: 1.5rem;
@@ -260,7 +266,6 @@ body {
   transform: scale(1.06);
 }
 
-/* Lista Inicial */
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -330,7 +335,6 @@ body {
   color: var(--red-title);
 }
 
-/* Banner do Personagem */
 .card {
   padding: 1rem;
   margin-bottom: 1rem;
@@ -429,17 +433,19 @@ body {
 }
 
 .mini-btn {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   border: 1px solid var(--slate-green);
-  background-color: rgba(109, 133, 129, 0.15);
+  background-color: rgba(109, 133, 129, 0.2);
   color: var(--text-main);
   font-weight: bold;
+  font-size: 0.9rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: 0.15s;
 }
 
 .mini-btn:hover {
@@ -448,7 +454,6 @@ body {
   color: #fff;
 }
 
-/* Alerta de Sobrepeso */
 .alert-danger {
   background-color: rgba(103, 35, 35, 0.85);
   backdrop-filter: blur(10px);
@@ -460,7 +465,6 @@ body {
   font-size: 0.88rem;
 }
 
-/* Abas */
 .tabs {
   display: flex;
   gap: 0.4rem;
@@ -488,11 +492,10 @@ body {
   color: #ffffff;
 }
 
-/* Recursos Vitais & Nutrientes */
 .vitals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
   margin-bottom: 1.1rem;
 }
 
@@ -528,11 +531,17 @@ body {
   margin-bottom: 0.25rem;
 }
 
-.vital-value {
-  display: block;
-  font-size: 1.25rem;
-  font-weight: 800;
+.vital-header-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.vital-value {
+  font-size: 1.15rem;
+  font-weight: 800;
 }
 
 .nutrient-value {
@@ -581,7 +590,6 @@ body {
   color: #0e1c16;
 }
 
-/* Atributos */
 .attributes-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -633,7 +641,6 @@ body {
   color: #f39c12;
 }
 
-/* Grid 2 Colunas */
 .two-col-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -646,7 +653,6 @@ body {
   }
 }
 
-/* Integridade Corporal */
 .integrity-list {
   display: flex;
   flex-direction: column;
@@ -710,7 +716,6 @@ body {
   margin-bottom: 0.15rem;
 }
 
-/* Ações do Personagem */
 .action-form {
   background-color: var(--bg-input);
   padding: 0.7rem;
@@ -839,7 +844,7 @@ body {
   height: 250px;
   background-color: var(--bg-input);
   color: var(--text-main);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
   padding: 0.75rem;
   font-size: 0.95rem;
@@ -847,7 +852,6 @@ body {
   resize: vertical;
 }
 
-/* Inputs Gerais */
 input, select, textarea {
   background-color: var(--bg-input);
   color: var(--text-main);
@@ -879,7 +883,6 @@ select option {
   cursor: pointer;
 }
 
-/* Tabelas */
 .card-header-flex {
   display: flex;
   justify-content: space-between;
@@ -922,7 +925,6 @@ select option {
   text-transform: uppercase;
 }
 
-/* Inventário & Peso */
 .weight-header {
   display: flex;
   justify-content: space-between;
@@ -995,7 +997,6 @@ select option {
   }
 }
 
-/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -1018,6 +1019,46 @@ select option {
 
 .modal-sm {
   max-width: 360px;
+}
+
+.wizard-modal {
+  max-width: 650px;
+}
+
+.wizard-steps-indicator {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.6rem;
+}
+
+.wizard-step-dot {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--glass-border);
+}
+
+.wizard-step-dot.active {
+  color: #fff;
+  background-color: var(--red-dark);
+  border-color: var(--red-title);
+}
+
+.dynamic-inputs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dynamic-input-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 .modal-header {
