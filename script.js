@@ -1154,7 +1154,7 @@ function renderInventory() {
   }
 }
 
-// ================= LEITURA AMPLIADA & EXPORTAR =================
+// ================= LEITURA AMPLIADA & EXPORTAR / COPIAR =================
 function initExpandableTextareas() {
   document.querySelectorAll('.expandable-textarea').forEach(textarea => {
     if (textarea.dataset.bound === 'true') return;
@@ -1187,6 +1187,44 @@ document.getElementById('btn-save-reader').addEventListener('click', () => {
   activeReaderElement = null;
 });
 
+// Copiar Código JSON para a Área de Transferência
+const btnCopyJson = document.getElementById('btn-copy-json');
+btnCopyJson.addEventListener('click', async () => {
+  const c = getActiveChar();
+  if (!c) return;
+
+  const jsonString = JSON.stringify(c, null, 2);
+
+  try {
+    await navigator.clipboard.writeText(jsonString);
+    showCopySuccess();
+  } catch (err) {
+    // Fallback para navegadores sem suporte ou contexto sem HTTPS
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = jsonString;
+    tempTextarea.style.position = 'fixed';
+    tempTextarea.style.opacity = '0';
+    document.body.appendChild(tempTextarea);
+    tempTextarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempTextarea);
+    showCopySuccess();
+  }
+});
+
+function showCopySuccess() {
+  const originalText = btnCopyJson.textContent;
+  btnCopyJson.textContent = 'Copiado!';
+  btnCopyJson.style.borderColor = '#2ecc71';
+  btnCopyJson.style.color = '#2ecc71';
+  setTimeout(() => {
+    btnCopyJson.textContent = originalText;
+    btnCopyJson.style.borderColor = '';
+    btnCopyJson.style.color = '';
+  }, 2000);
+}
+
+// Baixar Arquivo JSON
 document.getElementById('btn-export-char').addEventListener('click', () => {
   const c = getActiveChar();
   if (!c) return;
@@ -1200,6 +1238,7 @@ document.getElementById('btn-export-char').addEventListener('click', () => {
   downloadAnchor.remove();
 });
 
+// Importar via Arquivo JSON
 document.getElementById('import-file').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
